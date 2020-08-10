@@ -10,12 +10,12 @@ const bookSchema = mongoose.Schema({
     },
     author:{
         type: String,
-        require: true,
+        required: true,
         minlength:6
     },
     description:{
         type: String,
-        require: true,
+        required: true,
         minlength:6
     }
 });

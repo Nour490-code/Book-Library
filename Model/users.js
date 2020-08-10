@@ -4,19 +4,19 @@ const { response } = require('express');
 const userSchema = mongoose.Schema({
     username:{
         type: String,
-        require: true,
+        required: true,
         unique: 1,
         trim: true
     },
     email:{
         type: String,
-        require: true,
+        required: true,
         unique: 1,
         trim: true
     },
     password:{
         type: String,
-        require: true,
+        required: true,
         minlength:6
     },
     userID:{
