@@ -1,0 +1,20 @@
+{
+  "name": "book-library",
+  "version": "1.0.0",
+  "description": "This is a library project",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "library",
+    "books"
+  ],
+  "author": "Noureldin Ghazy",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.9.27",
+    "uuid": "^8.3.0"
+  }
+}
