@@ -13,6 +13,9 @@ const adminSchema = mongoose.Schema({
         require: true,
         minlength:6
     },
+    role:{
+        type:String
+    },
     adminID:{
         type: String
     }

@@ -24,15 +24,18 @@ mongoose.set('useCreateIndex', true);
 
 
 
-const {User} = require('./Model/user');
+const {User} = require('./Model/users');
 
 app.post('/register', (req, res) => {
+    const ID = uuid.v1(req.body);
     const newUser = new User({
         username: req.body.username,
         email: req.body.email,
-        password: req.body.password
+        password: req.body.password,
+        role: "User",
+        userID: ID
     }).save((err) => {
-        err ?  res.status(400).send(err) : res.send('OK')
+        err ?  res.status(400).send(err) : res.send(`OK and your ID is ${ID}`)
      });
 });
 
@@ -45,7 +48,8 @@ app.post('/signupadmin', (req, res) => {
     const newAdmin = new Admin({
         email: req.body.email,
         password: req.body.password,
-        adminID: ID
+        adminID: ID,
+        role: "Admin"
     }).save((err) => {
         err ?  res.status(400).send(err) : res.send(`Signed Up Successfuly Your ID is ${ID} `)
      });
@@ -54,6 +58,7 @@ app.post('/signupadmin', (req, res) => {
 
 
 app.post('/signin',isAdmin,(req,res) => {
+    // res.send('you are a user')
     const userData = {
         email:req.body.email,
         password:req.body.password
@@ -63,20 +68,21 @@ app.post('/signin',isAdmin,(req,res) => {
     });
     
 });
-
+let personRole = ''
 function isAdmin(req,res,next){
-    const isAdmin = req.body.email;
-    if(isAdmin.includes('admin')){
-        const adminData = {
-            email:req.body.email,
-            password:req.body.password
-        }
-        Admin.findOne(adminData, (err,admin) =>{
-            !admin ? res.send('Invalid email or password') : res.send('Logged in');
-        });
-    }else{
-        next()
+    const adminData = {
+        email:req.body.email,
+        password:req.body.password
     }
+
+    Admin.findOne(adminData, (err,admin) =>{
+        if(!admin){
+            next()
+        }else{
+            personRole = admin.role;
+            res.send('Logged in')
+        }
+    });
 }
 
 
@@ -84,6 +90,7 @@ function isAdmin(req,res,next){
 
 const {Book} = require('./Model/book');
 const { response } = require('express');
+const user = require('./Model/users');
 
 app.post('/admin',check,authAdmin,(req, res) => {
     const newBook = new Book({
@@ -132,28 +139,84 @@ app.post('/home',(req,res) => {
 
     //Adding Books to the user (Not finished)
      
-// let usera = '';
+let abook = '' 
+    app.post('/addbook',(req,res) => {
+        const Data = {
+            userID: req.body.userID,
+            name: req.body.name
+        }
+        // let { name } = req.body.name
+
+        Book.findOne({name: {$eq: req.body.name}}, (err,singleBook) =>{
+            if(err){
+                res.send('Cannot find the book or Invalid ID')
+                console.log(err)
+            }else{
+                abook = singleBook
+                console.log(abook)
+            }
+        }).then( User.update(
+            { userID: Data.userID },
+            { $push: { books: [abook] } }
+         )).then(res.send("book added"))
+        .then(console.log(abook))
+    });
+    
+
+
+// User.aggregate([
+                //     { $match: {userID: Data.userID}},
+                //     { $addFields:{ books : { $concatArrays: [ "$books", [ singleBook ] ] } } }
+                // ])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+let usera = '';
 // app.post('/addbook',logger,(req,res) => {
-//     const name = req.body.name;
+//     // res.send(usera)
+//     const name ={
+//          name: req.body.name
+//         }
 //     const author = req.body.author;
     
-//     Book.find({ $or: [ {name}, {author} ] }, (err,singleBook) =>{
-//         !singleBook ? res.send('Cannot find the book') : User.update({email: usera},{books:{singleBook}})
+//     Book.findOne(name, (err,singleBook) =>{
+//         if(err){
+//             res.send('Cannot find the book')
+//         }else{
+//             User.aggregate([
+//                 { $match: {userID: usera}},
+//                 { $addFields: { books: {singleBook} } }
+//             ])
+//         }
+//         res.end()
 //     });
-//     res.send(usera)
 // });
 
 // function logger(req,res,next){
 //     const userData = {
-//         email:req.body.email,
-//         password:req.body.password
+//         userID: req.body.userID
 //     }
-//     User.findOne(userData, (err,user) =>{
-//         usera = req.body.email
-//         if(err){
-//             res.send('Invalid email or password')
-//         }else{
-//             next();
-//         }
-//     });
-// }
+/*    User.findOne(userData, (err,user) =>{
+    usera = userData.books;
+    if(err){
+        res.send('Invalid ID')
+    }else{
+        next();
+    }
+    });
+// }*/

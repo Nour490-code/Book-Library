@@ -19,10 +19,13 @@ const userSchema = mongoose.Schema({
         require: true,
         minlength:6
     },
-    books:{
-       type: Array,
-       maxlength:5
-      }
+    userID:{
+        type: String
+    },
+    role:{
+        type:String
+    },
+    books:[{type:mongoose.Types.ObjectId,required:true}]
 });
 
 
