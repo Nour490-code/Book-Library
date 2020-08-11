@@ -4,23 +4,20 @@ const { response } = require('express');
 const bookSchema = mongoose.Schema({
     name:{
         type: String,
-        require: true,
-        unique: 1,
+        required: true,
         trim: true
     },
     author:{
         type: String,
-        required: true,
-        minlength:6
+        required: true
     },
     description:{
         type: String,
-        required: true,
-        minlength:6
+        required: true
     }
 });
 
 
 const Book = mongoose.model('Book', bookSchema);
 
-module.exports = {Book};
+module.exports = {Book,bookSchema};

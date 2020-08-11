@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { response } = require('express');
-
+const ms = require('ms')
 const userSchema = mongoose.Schema({
     username:{
         type: String,
@@ -25,7 +25,24 @@ const userSchema = mongoose.Schema({
     role:{
         type:String
     },
-    books:[{type:mongoose.Types.ObjectId,required:true}]
+    books:{
+        type: Array,
+        ref: 'Book',
+        items:{
+            type: Object,
+            name:{
+                type: String,
+            },
+            author:{
+                type: String,
+                required: true
+            },
+            description:{
+                type: String,
+                required: true
+            }
+        }
+    }
 });
 
 

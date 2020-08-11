@@ -15,7 +15,8 @@ app.listen(PORT,() => console.log(`listening to port ${PORT}`));
 const MONGOURL = 'mongodb+srv://nourghazy:2572004@login-nodejs-app.i8zvh.mongodb.net/nourghazy?retryWrites=true&w=majority';
 const options = {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useFindAndModify: false
 }
 mongoose.connect(MONGOURL,options)
 .then(() => console.log('Connected to mongodb!'))
@@ -33,6 +34,7 @@ app.post('/register', (req, res) => {
         email: req.body.email,
         password: req.body.password,
         role: "User",
+        books:"",
         userID: ID
     }).save((err) => {
         err ?  res.status(400).send(err) : res.send(`OK and your ID is ${ID}`)
@@ -137,28 +139,43 @@ app.post('/home',(req,res) => {
 
 
 
-    //Adding Books to the user (Not finished)
+   
      
-let abook = '' 
-    app.post('/addbook',(req,res) => {
-        const Data = {
-            userID: req.body.userID,
-            name: req.body.name
-        }
-        // let { name } = req.body.name
-
-        Book.findOne({name: {$eq: req.body.name}}, (err,singleBook) =>{
-            if(err){
-                res.send('Cannot find the book or Invalid ID')
-                console.log(err)
+let newBook = '' 
+let findUser = ''
+function validUser(req,res,next){
+    const username = {username: req.body.username}
+    findUser = username
+    User.findOne(username, (err,user) =>{
+        const booksLength = user.books;
+        if(user){
+            if(booksLength.length > 5){
+                res.send("You can't have more than 5 books")
             }else{
-                abook = singleBook
-                console.log(abook)
+                next()   
             }
-        }).then( User.update(
-            { userID: Data.userID },
-            { $push: { books: [abook] } }
-         )).then(res.send("book added"))
-        .then(console.log(abook))
-    });
-    
+        }else{
+            res.send('Invalid User')
+            console.log(err)
+        }
+    })
+}
+function validBook(req,res,next){
+    const bookName = {name: req.body.name}
+    Book.findOne(bookName,  (err,singleBook) =>{
+       if(!singleBook){
+           res.send('Cannot find the book')
+           console.log(err)
+       }else{
+           newBook = singleBook
+           next()
+       }
+    })
+}
+
+
+app.post('/addbook', validUser,validBook,(req,res) => {
+    User.findOneAndUpdate({username: req.body.username},{$push : {books: {newBook} }},{},
+        (err,result) => err? console.log(err) : res.send('Book Added')
+    )
+});
