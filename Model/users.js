@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { response } = require('express');
-const ms = require('ms')
+
 const userSchema = mongoose.Schema({
     username:{
         type: String,

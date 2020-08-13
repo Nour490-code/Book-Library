@@ -3,6 +3,7 @@ const app =  express();
 const mongoose = require('mongoose');
 const bodyParser = require("body-parser");
 const uuid = require('uuid');
+const async = require('async')
 
 app.use(bodyParser.json());
 
@@ -37,7 +38,7 @@ app.post('/register', (req, res) => {
         books:"",
         userID: ID
     }).save((err) => {
-        err ?  res.status(400).send(err) : res.send(`OK and your ID is ${ID}`)
+        err ?  res.status(400).send(err) : res.send(`Signed up successfuly`)
      });
 });
 
@@ -60,13 +61,12 @@ app.post('/signupadmin', (req, res) => {
 
 
 app.post('/signin',isAdmin,(req,res) => {
-    // res.send('you are a user')
     const userData = {
         email:req.body.email,
         password:req.body.password
     }
     User.findOne(userData, (err,user) =>{
-        !user ? res.send('Invalid email or password') : res.send('Logged in');
+        !user ? res.send('Invalid email or password') : res.send(`Logged in and your ID is ${user.userID}`);
     });
     
 });
@@ -94,29 +94,25 @@ const {Book} = require('./Model/book');
 const { response } = require('express');
 const user = require('./Model/users');
 
-app.post('/admin',check,authAdmin,(req, res) => {
-    const newBook = new Book({
-        name: req.body.name,
-        author: req.body.author,
-        description: req.body.description
-    }).save((err) => {
-        err? res.status(400).send(err) : res.send('Book added')
-     });
-
+app.post('/admin',check,(req, res) => {
+    Admin.findOne({adminID:req.body.adminID}, (err,admin) =>{
+        if(!admin){
+            res.send('Invalid ID')
+        }else{
+            const newBook = new Book({
+                name: req.body.name,
+                author: req.body.author,
+                description: req.body.description
+            }).save((err) => {
+                err? res.status(400).send(err) : res.send('Book added')
+             });
+                  
+        }
+    });
 });
-
-function authAdmin(req,res,next){
-    if(req.body.adminID){
-        Admin.findOne({adminID:req.body.adminID}, (err,admin) =>{
-            !admin ? res.send('Invalid ID') : res.send('Logged in');
-        });
-    }else{
-        next()        
-    }
-}
 function check(req,res,next){
     if(req.body.constructor === Object && Object.keys(req.body).length === 0){
-        res.send('Cannot Get Access')
+        res.send('Please enter your ID')
     }else{
         next()
     }
@@ -143,15 +139,18 @@ app.post('/home',(req,res) => {
      
 let newBook = '' 
 let findUser = ''
+let userD = ''
 function validUser(req,res,next){
-    const username = {username: req.body.username}
-    findUser = username
-    User.findOne(username, (err,user) =>{
+    const userID = {userID: req.body.userID}
+    findUser = userID
+    User.findOne(userID, (err,user) =>{
         const booksLength = user.books;
+        userD = user;
         if(user){
             if(booksLength.length > 5){
                 res.send("You can't have more than 5 books")
             }else{
+                
                 next()   
             }
         }else{
@@ -174,8 +173,19 @@ function validBook(req,res,next){
 }
 
 
-app.post('/addbook', validUser,validBook,(req,res) => {
-    User.findOneAndUpdate({username: req.body.username},{$push : {books: {newBook} }},{},
+app.post('/addbook', validUser,validBook,queue,(req,res) => {
+    User.findOneAndUpdate({userID: req.body.userID},{$push : {books: {newBook} }},{},
         (err,result) => err? console.log(err) : res.send('Book Added')
     )
 });
+
+function queue(req,res,next){
+    User.findOne({books: {newBook}}, (err,book) =>{
+        if(!book){
+            next()
+        }else{
+            res.send(`Waiting For Users Or You Already Have The Book`)
+        }
+    });
+}
+
