@@ -3,7 +3,6 @@ const app =  express();
 const mongoose = require('mongoose');
 const bodyParser = require("body-parser");
 const uuid = require('uuid');
-const async = require('async')
 
 app.use(bodyParser.json());
 
